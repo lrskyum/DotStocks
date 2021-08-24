@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DotStocks.Controllers
 {
+   
     public class Quote
     {
         private readonly DateTime closeDate;
@@ -29,24 +33,22 @@ namespace DotStocks.Controllers
     {
         private const String alphaVantageKey = "EJSFNVGS7Q00C4N6";
 
-        private String GetAlphaVantageTemplate(String symbol) =>
+        private String GetAlphaVantageUri(String symbol) =>
             $"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&apikey={alphaVantageKey}";
 
         [HttpGet]
-        public async Task<JObject> GetQuotesAsync(String symbol)
+        public Task<JObject> GetQuotesAsync(String symbol)
         {
-            JObject result = null;
-            var uri = GetAlphaVantageTemplate(("IBM"));
-            await new HttpClient().GetAsync(uri).ContinueWith(responseTask =>
+            var uri = GetAlphaVantageUri(("IBM"));
+            return new HttpClient().GetAsync(uri).ContinueWith(responseTask =>
             {
                 var response = responseTask.Result;
                 return response.Content.ReadAsStringAsync().ContinueWith(jsonTask =>
                 {
                     var json = jsonTask.Result;
-                    result = JsonConvert.DeserializeObject<JObject>(json);
+                    return JsonConvert.DeserializeObject<JObject>(json);
                 });
             }).Unwrap();
-            return result;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using DotStocks.Controllers;
 using NUnit.Framework;
@@ -18,7 +19,7 @@ namespace NUnitTests
         public async Task Test1()
         {
             await _controller.GetQuotesAsync("IBM");
-            Assert.Pass();
+            // TestContext.Out.WriteLine(result);
         }
     }
 }
