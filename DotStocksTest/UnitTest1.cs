@@ -1,6 +1,5 @@
-using System.Threading;
+using System.Threading.Tasks;
 using DotStocks.Controllers;
-using Microsoft.AspNetCore.Mvc;
 using NUnit.Framework;
 
 namespace NUnitTests
@@ -16,10 +15,9 @@ namespace NUnitTests
         }
 
         [Test]
-        public void Test1()
+        public async Task Test1()
         {
-            _controller.getQuotes("IBM");
-            Thread.Sleep(200000);
+            await _controller.GetQuotesAsync("IBM");
             Assert.Pass();
         }
     }
