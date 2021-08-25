@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ErrorEventArgs = Newtonsoft.Json.Serialization.ErrorEventArgs;
 
 namespace DotStocks.Controllers
 {
@@ -43,27 +42,50 @@ namespace DotStocks.Controllers
             Environment.Exit(1);
         }
 
+        private IList<Quote> GetQuotes(IEnumerable<JToken> quotesJson)
+        {
+            foreach (var quote in quotesJson.OfType<JProperty>())
+            {
+                var quoteDate = quote.Name;
+                foreach (var value in quote.Value.OfType<JProperty>())
+                {
+                    // var y = value switch 
+                    // {
+                    //     { Name: "1. "}
+                    //     Na
+                    // };
+                } 
+            }
+
+            return new List<Quote>();
+        }
+
         [HttpGet]
-        public Task<dynamic> GetQuotesAsync(String symbol)
+        public Task<JToken> GetQuotesAsync(String symbol)
         {
             var jsonSerializerSettings = new JsonSerializerSettings();
             jsonSerializerSettings.Error += OnError;
 
             var uri = GetAlphaVantageUri(("IBM"));
-            return _client.GetAsync(uri).ContinueWith(responseTask =>
-            {
-                var response = responseTask.Result;
-                return response.Content.ReadAsStringAsync().ContinueWith(jsonTask =>
+            var jobj = _client.GetAsync(uri)
+                .ContinueWith(responseTask =>
                 {
-                    var json = jsonTask.Result;
-                    var str = JsonConvert.DeserializeObject<dynamic>(json, new JsonSerializerSettings
+                    var response = responseTask.Result;
+                    return response.Content.ReadAsStringAsync().ContinueWith(jsonTask =>
                     {
-                        MaxDepth = Int32.MaxValue
+                        var json = jsonTask.Result;
+                        return JsonConvert.DeserializeObject<JObject>(json);
                     });
-                    return str;
-                    // return JsonConvert.DeserializeObject<JObject>(json);
+                })
+                .Unwrap()
+                .ContinueWith(deserializeTask =>
+                {
+                    var serviceResponse = deserializeTask.Result;
+                    var series = serviceResponse["Time Series (Daily)"];
+                    var x = GetQuotes(series.Children<JToken>());
+                    return series;
                 });
-            }).Unwrap();
+            return jobj;
         }
     }
 }
