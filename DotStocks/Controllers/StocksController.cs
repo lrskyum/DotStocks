@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -10,20 +9,72 @@ using Newtonsoft.Json.Linq;
 
 namespace DotStocks.Controllers
 {
-    public class Quote
+    public interface IQuote
     {
-        private readonly DateTime closeDate;
-        private readonly double adjusted;
+        PastTime CloseDate { get; }
+        QuoteValue Adjusted { get; }
+    }
 
-        public Quote(DateTime closeDate, double adjusted)
+    public class PastTime
+    {
+        public DateTime QuoteTime { get; }
+
+        public PastTime(DateTime quoteTime)
         {
-            this.closeDate = closeDate;
-            this.adjusted = adjusted;
+            if (QuoteTime > DateTime.Now)
+            {
+                throw new ArgumentException($"Date must be in the past: {quoteTime}");
+            }
+
+            QuoteTime = quoteTime;
+        }
+    }
+
+    public class QuoteValue
+    {
+        public QuoteValue(double quote)
+        {
+            if (quote < 0)
+            {
+                throw new ArgumentException($"Value must not be negative: {quote}");
+            }
+            Value = quote;
         }
 
-        public DateTime CloseDate => closeDate;
+        public double Value { get; }
+    }
 
-        public double Adjusted => adjusted;
+    public class Quote : IQuote
+    {
+        public PastTime CloseDate { get; }
+        public QuoteValue Adjusted { get; }
+
+        public Quote(Quote quote)
+        {
+            CloseDate = quote.CloseDate;
+            Adjusted = quote.Adjusted;
+        }
+
+        public Quote(DateTime closeDate, double adjusted)
+            : this(new PastTime(closeDate), new QuoteValue(adjusted))
+        {
+        }
+
+        public Quote(PastTime closeDate, QuoteValue adjusted)
+        {
+            CloseDate = closeDate;
+            Adjusted = adjusted;
+        }
+
+        public Quote WithCloseDate(DateTime value)
+        {
+            return new Quote(value, Adjusted.Value);
+        }
+
+        public Quote WithAdjusted(double value)
+        {
+            return new Quote(CloseDate.QuoteTime, value);
+        }
     }
 
     [ApiController]
@@ -46,15 +97,15 @@ namespace DotStocks.Controllers
         {
             foreach (var quote in quotesJson.OfType<JProperty>())
             {
-                var quoteDate = quote.Name;
-                foreach (var value in quote.Value.OfType<JProperty>())
+                var quoteDate = DateTime.Parse(quote.Name);
+                Quote? value = null; 
+                foreach (var property in (quote.Value as JObject)?.Properties()!)
                 {
-                    // var y = value switch 
+                    // switch (property)
                     // {
-                    //     { Name: "1. "}
-                    //     Na
-                    // };
-                } 
+                    //     case "1. open" => value = new Quote(quoteDate, property.Value);
+                    // }
+                }
             }
 
             return new List<Quote>();
