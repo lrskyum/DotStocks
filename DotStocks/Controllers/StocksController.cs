@@ -95,24 +95,26 @@ namespace DotStocks.Controllers
 
         private IList<Quote> GetQuotes(IEnumerable<JToken> quotesJson)
         {
+            IList<Quote> list = new List<Quote>(1000);
             foreach (var quote in quotesJson.OfType<JProperty>())
             {
                 var quoteDate = DateTime.Parse(quote.Name);
-                Quote? value = null; 
-                foreach (var property in (quote.Value as JObject)?.Properties()!)
-                {
-                    // switch (property)
-                    // {
-                    //     case "1. open" => value = new Quote(quoteDate, property.Value);
-                    // }
-                }
+                var detail = quote.Value;
+                var open = detail["1. open"].ToObject<Double>();
+                var high = detail["2. high"].ToObject<Double>();
+                var low = detail["3. low"].ToObject<Double>();
+                var close = detail["4. close"].ToObject<Double>();
+                var adjusted = detail["5. adjusted close"].ToObject<Double>();
+                var volume = detail["6. volume"].ToObject<Double>();
+                var dividend = detail["7. dividend amount"].ToObject<Double>();
+                var splint = detail["8. split coefficient"].ToObject<Double>();
+                list.Add(new Quote(quoteDate, adjusted)); 
             }
-
-            return new List<Quote>();
+            return list;
         }
 
         [HttpGet]
-        public Task<JToken> GetQuotesAsync(String symbol)
+        public Task<IList<Quote>> GetQuotesAsync(String symbol)
         {
             var jsonSerializerSettings = new JsonSerializerSettings();
             jsonSerializerSettings.Error += OnError;
@@ -133,8 +135,8 @@ namespace DotStocks.Controllers
                 {
                     var serviceResponse = deserializeTask.Result;
                     var series = serviceResponse["Time Series (Daily)"];
-                    var x = GetQuotes(series.Children<JToken>());
-                    return series;
+                    var list = GetQuotes(series.Children<JToken>());
+                    return list;
                 });
             return jobj;
         }
