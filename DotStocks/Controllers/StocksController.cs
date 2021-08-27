@@ -38,6 +38,7 @@ namespace DotStocks.Controllers
             {
                 throw new ArgumentException($"Value must not be negative: {quote}");
             }
+
             Value = quote;
         }
 
@@ -108,8 +109,9 @@ namespace DotStocks.Controllers
                 var volume = detail["6. volume"].ToObject<Double>();
                 var dividend = detail["7. dividend amount"].ToObject<Double>();
                 var splint = detail["8. split coefficient"].ToObject<Double>();
-                list.Add(new Quote(quoteDate, adjusted)); 
+                list.Add(new Quote(quoteDate, adjusted));
             }
+
             return list;
         }
 
@@ -120,25 +122,24 @@ namespace DotStocks.Controllers
             jsonSerializerSettings.Error += OnError;
 
             var uri = GetAlphaVantageUri(("IBM"));
-            var jobj = _client.GetAsync(uri)
+            return _client.GetAsync(uri)
                 .ContinueWith(responseTask =>
                 {
                     var response = responseTask.Result;
-                    return response.Content.ReadAsStringAsync().ContinueWith(jsonTask =>
-                    {
-                        var json = jsonTask.Result;
-                        return JsonConvert.DeserializeObject<JObject>(json);
-                    });
+                    return response.Content.ReadAsStringAsync();
                 })
                 .Unwrap()
+                .ContinueWith(jsonTask =>
+                {
+                    var json = jsonTask.Result;
+                    return JsonConvert.DeserializeObject<JObject>(json);
+                })
                 .ContinueWith(deserializeTask =>
                 {
                     var serviceResponse = deserializeTask.Result;
                     var series = serviceResponse["Time Series (Daily)"];
-                    var list = GetQuotes(series.Children<JToken>());
-                    return list;
+                    return GetQuotes(series.Children<JToken>());
                 });
-            return jobj;
         }
     }
 }
