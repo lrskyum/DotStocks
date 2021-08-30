@@ -57,8 +57,7 @@ namespace DotStocks.Controllers
                 {
                     var serviceResponse = deserializeTask.Result;
                     var series = serviceResponse["Time Series (Daily)"];
-                    var list = _quoteService.GetQuotes(series.Children<JToken>());
-                    return list;
+                    return _quoteService.GetQuotes(series.Children<JToken>());
                 });
             return jobj;
         }

@@ -17,7 +17,7 @@ namespace NUnitTests
         [SetUp]
         public void Setup()
         {
-            serviceMock.Setups()
+            serviceMock.Setups();
             _controller = new StocksController(serviceMock);
         }
 
