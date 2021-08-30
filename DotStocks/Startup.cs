@@ -1,3 +1,4 @@
+using DotStocks.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -23,6 +24,7 @@ namespace DotStocks
             services.AddControllersWithViews();
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/dist"; });
+            services.AddScoped<IQuoteService, QuoteService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
