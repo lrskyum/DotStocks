@@ -23,15 +23,9 @@ namespace DotStocks.Services
             Environment.Exit(1);
         }
 
-        public async Task<IList<Quote>> GetQuotes2(String symbol)
-        {
-            var res = await GetQuotesAsync(symbol);
-            Console.WriteLine("TEST");
-            return res;
-        }
         public IList<Quote> GetQuotes(String symbol)
         {
-            return GetQuotesAsync(symbol).Result;
+            return GetQuotesAsync(symbol).GetAwaiter().GetResult();
         }
 
         public Task<IList<Quote>> GetQuotesAsync(String symbol)

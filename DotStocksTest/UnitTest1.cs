@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DotStocks.Controllers;
 using DotStocks.Services;
+using DotStocks.Vo;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -13,27 +15,38 @@ namespace NUnitTests
     {
         private IQuoteService _service;
         private StocksController _controller;
-        
-        // private Mock serviceMock = Mock.Get<IQuoteService>();
+        private Mock<IQuoteService> _serviceMock = new();
 
         [SetUp]
         public void Setup()
         {
-            // serviceMock.Setups();
             _service = new QuoteService();
             _controller = new StocksController(_service);
         }
 
         [Test]
-        public void Test1()
+        public async Task ShouldTestAsync()
         {
-            Assert.NotNull(_service.GetQuotes2("IBM"));
-        }
-
-        [Test]
-        public async Task Test2()
-        {
+            // given
+            _serviceMock.Setup(m => m.GetQuotes("IBM")).Returns(new List<Quote>());
+            _service = _serviceMock.Object;
+            
+            // when
+            
+            // then
             Assert.NotNull(await _controller.GetQuotesAsync("IBM"));
+        }
+        
+        [Test]
+        public void ShouldTest()
+        {
+            // given
+            _serviceMock.Setup(m => m.GetQuotes("IBM")).Returns(new List<Quote>());
+            
+            // when
+            
+            // then
+            Assert.NotNull(_service.GetQuotes("IBM"));
         }
     }
 }
