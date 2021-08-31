@@ -11,18 +11,27 @@ namespace NUnitTests
     [TestFixture]
     public class Tests
     {
+        private IQuoteService _service;
         private StocksController _controller;
-        private Mock serviceMock = Mock.Get<IQuoteService>();
+        
+        // private Mock serviceMock = Mock.Get<IQuoteService>();
 
         [SetUp]
         public void Setup()
         {
-            serviceMock.Setups();
-            _controller = new StocksController(serviceMock);
+            // serviceMock.Setups();
+            _service = new QuoteService();
+            _controller = new StocksController(_service);
         }
 
         [Test]
-        public async Task Test1()
+        public void Test1()
+        {
+            Assert.NotNull(_service.GetQuotes2("IBM"));
+        }
+
+        [Test]
+        public async Task Test2()
         {
             Assert.NotNull(await _controller.GetQuotesAsync("IBM"));
         }
